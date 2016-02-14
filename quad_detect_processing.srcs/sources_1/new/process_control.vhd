@@ -51,12 +51,12 @@ entity process_control is
            nLDAC1 : out STD_LOGIC;
            nLDAC2 : out STD_LOGIC;
            DATA_DA1 : out STD_LOGIC;
-           DATA_DA2 : out STD_LOGIC;
-           lr   : out STD_LOGIC_VECTOR(11 downto 0);
-           sum   : out STD_LOGIC_VECTOR(11 downto 0);
-           d   : out STD_LOGIC_VECTOR(15 downto 0);
-           mmclock : out std_logic;
-           state_indi : out std_logic_vector(2 downto 0));
+           DATA_DA2 : out STD_LOGIC
+--           lr   : out STD_LOGIC_VECTOR(11 downto 0);
+--           sum   : out STD_LOGIC_VECTOR(11 downto 0);
+--           d   : out STD_LOGIC_VECTOR(15 downto 0);
+--           mmclock : out std_logic;
+--           state_indi : out std_logic_vector(2 downto 0));
 end process_control;
 
 architecture Behavioral of process_control is
@@ -148,12 +148,12 @@ signal output_data1 : std_logic_vector(15 downto 0);
 signal output_data2 : std_logic_vector(15 downto 0);
 
 begin
-lr <= input_data1;
-sum<= input_data3;
-d<=output_data1;
-mmclock<=MCLK;
---state_indi <= start_ad1&en_cal&start_da1;
-state_indi <= dacounter(2 downto 0);
+--lr <= input_data1;
+--sum<= input_data3;
+--d<=output_data1;
+--mmclock<=MCLK;
+----state_indi <= start_ad1&en_cal&start_da1;
+--state_indi <= dacounter(2 downto 0);
 lrbt_data_input: pmodad1 port map(
     CLK,
     RST,
