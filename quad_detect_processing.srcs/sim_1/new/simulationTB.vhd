@@ -50,17 +50,13 @@ component process_control is
            SCLK_AD2 : out STD_LOGIC;
            nCS_AD1 : out STD_LOGIC;
            nCS_AD2 : out STD_LOGIC;
-           SCLK_DA1 : out STD_LOGIC;
-           SCLK_DA2 : out STD_LOGIC;
-           nCS_DA1 : out STD_LOGIC;
-           nCS_DA2 : out STD_LOGIC;
-           nLDAC1 : out STD_LOGIC;
-           nLDAC2 : out STD_LOGIC;
+           SCLK_DA : out STD_LOGIC;
+           nSYNC_DA : out STD_LOGIC;
            DATA_DA1 : out STD_LOGIC;
            DATA_DA2 : out STD_LOGIC;
            lr   : out STD_LOGIC_VECTOR(11 downto 0);
            sum   : out STD_LOGIC_VECTOR(11 downto 0);
-           d   : out STD_LOGIC_VECTOR(15 downto 0);
+           d   : out STD_LOGIC_VECTOR(11 downto 0);
            mmclock : out std_logic;
            state_indi : out std_logic_vector(2 downto 0));
 end component;
@@ -76,17 +72,15 @@ signal       SCLK_AD1 : STD_LOGIC;
 signal       SCLK_AD2 : STD_LOGIC;
 signal       nCS_AD1 : STD_LOGIC;
 signal       nCS_AD2 : STD_LOGIC;
-signal       SCLK_DA1 : STD_LOGIC;
-signal       SCLK_DA2 : STD_LOGIC;
-signal       nCS_DA1 : STD_LOGIC;
-signal       nCS_DA2 : STD_LOGIC;
-signal       nLDAC1 : STD_LOGIC;
-signal       nLDAC2 : STD_LOGIC;
+signal       SCLK_DA : STD_LOGIC;
+
+signal       nSYNC_DA : STD_LOGIC;
+
 signal       DATA_DA1 : STD_LOGIC;
 signal       DATA_DA2 : STD_LOGIC;
 signal      lr   : STD_LOGIC_VECTOR(11 downto 0);
 signal      sum   : STD_LOGIC_VECTOR(11 downto 0);
-signal      d   : STD_LOGIC_VECTOR(15 downto 0);
+signal      d   : STD_LOGIC_VECTOR(11 downto 0);
 signal       mmclock : STD_LOGIC;
 signal      state_indi : std_logic_vector(2 downto 0);
 begin
@@ -103,12 +97,8 @@ iotest: process_control port map(
            SCLK_AD2,
            nCS_AD1,
            nCS_AD2,
-           SCLK_DA1,
-           SCLK_DA2,
-           nCS_DA1,
-           nCS_DA2 ,
-           nLDAC1,
-           nLDAC2,
+           SCLK_DA,
+           nSYNC_DA,
            DATA_DA1,
            DATA_DA2,
            lr,
@@ -136,8 +126,13 @@ iotest: process_control port map(
                DATA_AD2_1 <= '1';
                wait for 150ns;
                DATA_AD1_1 <= '0';
-               wait for 50ns;
-               DATA_AD2_1 <= '0';               
+
+               DATA_AD2_1 <= '0'; 
+               wait for 300ns;
+               DATA_AD2_1 <= '1';       
+
+               wait for 30ns;
+               DATA_AD2_1 <= '0';                     
                wait;
            end process; 
 end Behavioral;

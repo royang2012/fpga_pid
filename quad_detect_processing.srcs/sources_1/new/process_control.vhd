@@ -36,6 +36,7 @@ entity process_control is
            RST : in STD_LOGIC;
            START : in STD_LOGIC;
            BYPASS : in STD_LOGIC;
+           led : out STD_LOGIC_VECTOR(15 downto 0);
            DATA_AD1_1 : in STD_LOGIC;
            DATA_AD1_2 : in STD_LOGIC;
            DATA_AD2_1 : in STD_LOGIC;
@@ -44,19 +45,16 @@ entity process_control is
            SCLK_AD2 : out STD_LOGIC;
            nCS_AD1 : out STD_LOGIC;
            nCS_AD2 : out STD_LOGIC;
-           SCLK_DA1 : out STD_LOGIC;
-           SCLK_DA2 : out STD_LOGIC;
-           nCS_DA1 : out STD_LOGIC;
-           nCS_DA2 : out STD_LOGIC;
-           nLDAC1 : out STD_LOGIC;
-           nLDAC2 : out STD_LOGIC;
+           SCLK_DA : out STD_LOGIC;
+           nSYNC_DA : out STD_LOGIC;
            DATA_DA1 : out STD_LOGIC;
            DATA_DA2 : out STD_LOGIC
 --           lr   : out STD_LOGIC_VECTOR(11 downto 0);
 --           sum   : out STD_LOGIC_VECTOR(11 downto 0);
---           d   : out STD_LOGIC_VECTOR(15 downto 0);
+--           d   : out STD_LOGIC_VECTOR(11 downto 0);
 --           mmclock : out std_logic;
---           state_indi : out std_logic_vector(2 downto 0));
+--           state_indi : out std_logic_vector(2 downto 0)
+            );
 end process_control;
 
 architecture Behavioral of process_control is
@@ -80,31 +78,36 @@ component pmodad1 is
             );
 end component;
 
-component pmodda3 is
-  Port    (    
-  --General usage
-    CLK      : in std_logic;         
-    RST      : in std_logic;
+component pmodda2 is
+    Port ( 
+
+     --General usage
+       CLK      : in std_logic;    
+       RST      : in std_logic;
      
-  --Pmod interface signals
-    DATA     : in std_logic_vector(15 downto 0);
-    SCLK     : out std_logic;
-    nCS      : out std_logic;
-    nLDAC    : out std_logic;
-  
-  --User interface signals
-    INDATA   : out std_logic; 
-    START    : in std_logic; 
-    DONE     : out std_logic
-            );
-end component;
+     --Pmod interface signals
+       D1       : out std_logic;
+       D2       : out std_logic;
+       CLK_OUT  : out std_logic;
+       nSYNC    : out std_logic;
+        
+     --User interface signals
+       DATA1    : in std_logic_vector(11 downto 0);
+       DATA2    : in std_logic_vector(11 downto 0);
+       START    : in std_logic; 
+       DONE     : out std_logic
+              
+        );
+end component ;
+
+
 
 component calculation is
     Port ( lr_in : in STD_LOGIC_VECTOR (11 downto 0);
            tb_in : in STD_LOGIC_VECTOR (11 downto 0);
            sum_in : in STD_LOGIC_VECTOR (11 downto 0);
-           lr_out : out STD_LOGIC_VECTOR (15 downto 0);
-           tb_out : out STD_LOGIC_VECTOR (15 downto 0);                      
+           lr_out : out STD_LOGIC_VECTOR (11 downto 0);
+           tb_out : out STD_LOGIC_VECTOR (11 downto 0);                      
            RST : in STD_LOGIC;
            CLK : in STD_LOGIC;
            en_cal   :in STD_LOGIC;
@@ -125,16 +128,14 @@ signal current_state: states;
 signal next_state   : states;
 
 signal MCLK         : std_logic;
-signal dacounter    : std_logic_vector(3 downto 0);
+signal dacounter    : std_logic_vector(4 downto 0);
 signal start_ad1    : std_logic;
 signal done_ad1     : std_logic;
 signal start_ad2    : std_logic;
 signal done_ad2     : std_logic;
 
-signal start_da1    : std_logic;
-signal done_da1     : std_logic;
-signal start_da2    : std_logic;
-signal done_da2     : std_logic;
+signal start_da     : std_logic;
+signal done_da      : std_logic;
 
 signal done_cal     : std_logic;
 signal en_cal       : std_logic;
@@ -144,15 +145,15 @@ signal input_data2  : std_logic_vector(11 downto 0);
 signal input_data3  : std_logic_vector(11 downto 0);
 signal input_data4  : std_logic_vector(11 downto 0);
 
-signal output_data1 : std_logic_vector(15 downto 0);
-signal output_data2 : std_logic_vector(15 downto 0);
+signal output_data1 : std_logic_vector(11 downto 0);
+signal output_data2 : std_logic_vector(11 downto 0);
 
 begin
 --lr <= input_data1;
 --sum<= input_data3;
 --d<=output_data1;
 --mmclock<=MCLK;
-----state_indi <= start_ad1&en_cal&start_da1;
+--state_indi <= start_ad1&en_cal&start_da;
 --state_indi <= dacounter(2 downto 0);
 lrbt_data_input: pmodad1 port map(
     CLK,
@@ -178,27 +179,18 @@ sum_data_input: pmodad1 port map(
     start_ad2,
     done_ad2);    
     
-lr_output: pmodda3 port map(
+data_output: pmodda2 port map(
     CLK,
     RST,
-    output_data1,
-    SCLK_DA1,
-    nCS_DA1,
-    nLDAC1,
     DATA_DA1,
-    start_da1,
-    done_da1);
-
-tb_output: pmodda3 port map(
-    CLK,
-    RST,
-    output_data2,
-    SCLK_DA2,
-    nCS_DA2,
-    nLDAC2,
     DATA_DA2,
-    start_da2,
-    done_da2);    
+    SCLK_DA,
+    nSYNC_DA,
+    output_data1,
+    output_data2,
+    start_da,
+    done_da);
+
 
 MHz_clock: MHz_divider port map(
     CLK,
@@ -216,7 +208,7 @@ data_cal: calculation port map(
     en_cal,
     BYPASS,
     done_cal);
-
+    led <= "0000"&input_data3;
 SYNC_PROC: process (CLK,RST)
    begin
       if (rising_edge(CLK)) then
@@ -245,7 +237,7 @@ STATE_DECODE: process(current_state)
          end if;
     end process;    
                                            
-NEXT_STATE_DECODE: process (current_state, START, done_ad1, done_da1, MCLK)
+NEXT_STATE_DECODE: process (current_state, START, done_ad1, done_da, MCLK)
     begin        
         next_state <= current_state;  -- default is to stay in current state     
         case(current_state) is
@@ -271,22 +263,19 @@ NEXT_STATE_DECODE: process (current_state, START, done_ad1, done_da1, MCLK)
 delay_counter: process(CLK, RST, start_ad1,done_ad1)
     begin
         if RST = '1' then
-            start_da1 <= '0';
-            start_da2 <= '0';
-            dacounter <= "0000";
-        elsif rising_edge(done_ad1) then           
-            start_da1 <= '0';
-            start_da2 <= '0';    
-            dacounter <= "0000";        
-        elsif start_ad1 = '1' then
-            if rising_edge(CLK) then
-                if dacounter = "1001" then
-                    start_da1 <= '1';
-                    start_da2 <= '1';      
-                    dacounter <= "0000";         
+            start_da <= '0';
+            dacounter <= "00000";   
+        elsif rising_edge(CLK) then
+            if start_ad1 = '1' then
+                if dacounter = "10001" then
+                    start_da <= '1';
+                    dacounter <= "00000";         
                 else
                 dacounter <= dacounter + '1'; 
                 end if;
+            elsif done_ad1 = '1' then
+                dacounter <= "00000";
+                start_da <= '0';
             end if;
         end if;
     end process;
